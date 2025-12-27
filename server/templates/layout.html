@@ -4,87 +4,206 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}SCVP - Save and Control Version Project{% endblock %}</title>
+    
+    <!-- Моноширинный шрифт -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='fonts/monospace.css') }}">
+    
+    <!-- Базовые стили -->
     <style>
-        /* Временные базовые стили */
+        /* Базовые стили, которые не зависят от темы */
         body {
             font-family: 'Courier New', monospace;
-            margin: 20px;
+            margin: 0;
+            padding: 20px;
             line-height: 1.6;
+            min-height: 100vh;
         }
-        .navbar {
-            border-bottom: 2px solid #000;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-        }
-        .navbar a {
-            margin-right: 15px;
-            text-decoration: none;
-            color: #0000EE;
-        }
-        .navbar a:hover {
-            text-decoration: underline;
-        }
+        
         .container {
             max-width: 1200px;
             margin: 0 auto;
-        }
-        .footer {
-            margin-top: 50px;
-            border-top: 1px solid #ccc;
-            padding-top: 20px;
-            font-size: 0.9em;
-            color: #666;
+            min-height: calc(100vh - 140px);
         }
         
-        /* Стили для навигации */
+        .navbar {
+            padding: 10px 0;
+            margin-bottom: 20px;
+            border-bottom: 2px solid;
+        }
+        
         .nav-left {
             float: left;
         }
+        
         .nav-right {
             float: right;
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
+        
         .nav-clear {
             clear: both;
         }
         
-        /* Стили для мобильных устройств */
+        .navbar a {
+            margin-right: 15px;
+            text-decoration: none;
+        }
+        
+        .navbar a:last-child {
+            margin-right: 0;
+        }
+        
+        .navbar a:hover {
+            text-decoration: underline;
+        }
+        
+        .theme-toggle-nav {
+            text-decoration: none !important;
+            font-size: 1.2em;
+            padding: 5px;
+            border-radius: 3px;
+        }
+        
+        .user-info {
+            display: inline-block;
+            margin-left: 10px;
+            padding-left: 10px;
+            border-left: 1px solid;
+        }
+        
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            font-size: 0.9em;
+            border-top: 1px solid;
+        }
+        
+        /* Адаптивность */
         @media (max-width: 768px) {
-            .navbar a {
-                display: block;
-                margin: 5px 0;
-                padding: 5px 0;
+            body {
+                padding: 10px;
             }
+            
             .nav-left, .nav-right {
                 float: none;
+                display: block;
+            }
+            
+            .nav-right {
+                margin-top: 10px;
+                padding-top: 10px;
+                border-top: 1px solid;
+                flex-wrap: wrap;
+            }
+            
+            .navbar a {
+                display: inline-block;
+                margin: 5px 10px 5px 0;
+                padding: 5px 0;
+            }
+            
+            .user-info {
+                display: block;
+                margin-left: 0;
+                padding-left: 0;
+                border-left: none;
+                margin-top: 10px;
+                border-top: 1px solid;
+                padding-top: 10px;
+            }
+            
+            .theme-toggle-nav {
+                order: -1; /* Кнопка темы первой на мобильных */
             }
         }
     </style>
+    
+    <!-- Подключаем выбранную тему -->
+    {% if session.get('theme') == 'dark' %}
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/dark.css') }}">
+    {% else %}
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/light.css') }}">
+    {% endif %}
+    
+    <!-- Иконка сайта -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💾</text></svg>">
+    
+    <!-- Дополнительные стили для конкретных страниц -->
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
     <div class="container">
+        <!-- Навигационная панель -->
         <div class="navbar">
             <div class="nav-left">
-                <a href="/">🏠 Главная</a>
-                <a href="/about">ℹ️ О проекте</a>
-                <a href="/help">📖 Справка</a>
+                <a href="{{ url_for('main.index') }}">🏠 Главная</a>
+                <a href="{{ url_for('main.about') }}">ℹ️ О проекте</a>
+                <a href="{{ url_for('main.help') }}">📖 Справка</a>
             </div>
             <div class="nav-right">
-                <a href="/auth/login">🔑 Вход</a>
-                <a href="/auth/register">🚀 Регистрация</a>
+                <!-- Кнопка переключения темы -->
+                <a href="{{ url_for('main.toggle_theme') }}" class="theme-toggle-nav" title="Переключить тему">
+                    {% if session.get('theme') == 'dark' %}
+                        ☀️
+                    {% else %}
+                        🌙
+                    {% endif %}
+                </a>
+                
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('main.dashboard') }}">📁 Мои репозитории</a>
+                    <a href="{{ url_for('main.new_repo') }}">➕ Новый репозиторий</a>
+                    <span class="user-info">
+                        👤 {{ current_user.username }}
+                        <a href="{{ url_for('auth.logout') }}">🚪 Выйти</a>
+                    </span>
+                {% else %}
+                    <a href="{{ url_for('auth.login') }}">🔑 Войти</a>
+                    <a href="{{ url_for('auth.register') }}">🚀 Регистрация</a>
+                {% endif %}
             </div>
             <div class="nav-clear"></div>
         </div>
         
+        <!-- Основной контент -->
         <main>
+            <!-- Флеш-сообщения -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-messages">
+                        {% for category, message in messages %}
+                            <div class="flash {{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+            
             {% block content %}{% endblock %}
         </main>
         
+        <!-- Футер -->
         <div class="footer">
-            <p>SCVP v0.1 | Save and Control Version Project | 
-                <a href="/about">О проекте</a> | 
-                <a href="/help">Справка</a>
+            <p>
+                💾 SCVP v0.1 | Save and Control Version Project | 
+                <a href="{{ url_for('main.about') }}">О проекте</a> | 
+                <a href="{{ url_for('main.help') }}">Справка</a>
+                {% if current_user.is_authenticated %}
+                    | <a href="{{ url_for('main.dashboard') }}">Мои репозитории</a>
+                    | <a href="{{ url_for('auth.logout') }}">Выйти</a>
+                {% else %}
+                    | <a href="{{ url_for('auth.login') }}">Войти</a>
+                    | <a href="{{ url_for('auth.register') }}">Регистрация</a>
+                {% endif %}
+            </p>
+            <p style="margin-top: 10px; font-size: 0.8em; opacity: 0.7;">
+                Сделано с ❤️ для программистов, которые помнят как это было
             </p>
         </div>
     </div>
+    
+    <!-- Скрипты -->
+    {% block scripts %}{% endblock %}
 </body>
 </html>

@@ -1,0 +1,242 @@
+{% extends "layout.html" %}
+
+{% block title %}Редактировать {{ repo.name }} - SCVP{% endblock %}
+
+{% block extra_css %}
+<style>
+    .edit-container {
+        max-width: 800px;
+        margin: 0 auto;
+        display: flex;
+        gap: 30px;
+    }
+    
+    .edit-box {
+        flex: 1;
+        border: 3px double;
+        padding: 30px;
+    }
+    
+    .info-box {
+        flex: 1;
+        border: 3px double;
+        padding: 30px;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        border: 2px solid;
+        font-family: 'Courier New', monospace;
+        font-size: 16px;
+    }
+    
+    textarea.form-control {
+        min-height: 100px;
+        resize: vertical;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: #333;
+        box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
+    }
+    
+    .btn {
+        display: inline-block;
+        padding: 10px 20px;
+        text-decoration: none;
+        border: 2px solid;
+        background-color: transparent;
+        color: inherit;
+        cursor: pointer;
+        font-family: 'Courier New', monospace;
+        font-size: 16px;
+        text-align: center;
+    }
+    
+    .btn:hover {
+        background-color: inherit;
+        color: inherit;
+    }
+    
+    .btn-primary {
+        background-color: #000;
+        color: #fff;
+    }
+    
+    .btn-primary:hover {
+        background-color: #333;
+        border-color: #333;
+    }
+    
+    .btn-secondary {
+        background-color: #f0f0f0;
+    }
+    
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 30px;
+    }
+    
+    .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+    
+    .checkbox-group input[type="checkbox"] {
+        width: auto;
+    }
+    
+    .danger-zone {
+        margin-top: 40px;
+        padding: 20px;
+        border: 2px solid #FF0000;
+        background-color: rgba(255,0,0,0.1);
+    }
+    
+    @media (max-width: 768px) {
+        .edit-container {
+            flex-direction: column;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+        }
+        
+        .form-actions .btn {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="edit-container">
+    <div class="edit-box">
+        <h1>✏️ Редактировать репозиторий</h1>
+        <p style="color: #666; margin-bottom: 30px;">Измените информацию о репозитории "{{ repo.name }}"</p>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <form method="POST" action="{{ url_for('main.edit_repo', repo_id=repo.id) }}">
+            {{ form.hidden_tag() }}
+            
+            <div class="form-group">
+                {{ form.name.label }}
+                {{ form.name(class="form-control") }}
+                {% if form.name.errors %}
+                    <small style="color: #721c24;">
+                        {% for error in form.name.errors %}
+                            {{ error }}<br>
+                        {% endfor %}
+                    </small>
+                {% else %}
+                    <small>Название должно быть уникальным среди ваших репозиториев</small>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                {{ form.description.label }}
+                {{ form.description(class="form-control") }}
+                {% if form.description.errors %}
+                    <small style="color: #721c24;">
+                        {% for error in form.description.errors %}
+                            {{ error }}<br>
+                        {% endfor %}
+                    </small>
+                {% endif %}
+            </div>
+            
+            <div class="checkbox-group">
+                {{ form.is_public() }}
+                {{ form.is_public.label }}
+            </div>
+            
+            <div class="form-actions">
+                {{ form.submit(class="btn-primary") }}
+                <a href="{{ url_for('main.repo_view', repo_id=repo.id) }}" class="btn btn-secondary">Отмена</a>
+            </div>
+        </form>
+        
+        <div class="danger-zone">
+            <h3 style="color: #FF0000; margin-top: 0;">⚠️ Опасная зона</h3>
+            <p>Удаление репозитория нельзя отменить. Все файлы и история коммитов будут потеряны.</p>
+            <a href="{{ url_for('main.delete_repo', repo_id=repo.id) }}" 
+               class="btn" 
+               style="border-color: #FF0000; color: #FF0000;"
+               onclick="return confirm('ВНИМАНИЕ: Вы точно хотите удалить репозиторий \"{{ repo.name }}\"? Все файлы будут безвозвратно удалены.')">
+                🗑️ Удалить репозиторий
+            </a>
+        </div>
+    </div>
+    
+    <div class="info-box">
+        <h3>ℹ️ Информация о репозитории</h3>
+        
+        <div style="margin-bottom: 20px;">
+            <p><strong>Текущее название:</strong> {{ repo.name }}</p>
+            <p><strong>Текущее описание:</strong> {{ repo.description if repo.description else 'Нет описания' }}</p>
+            <p><strong>Текущий статус:</strong> 
+                {% if repo.is_public %}
+                    <span style="color: #155724;">✅ Публичный</span>
+                {% else %}
+                    <span style="color: #721c24;">🔒 Приватный</span>
+                {% endif %}
+            </p>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+            <h4>📊 Статистика</h4>
+            <ul>
+                <li><strong>Создан:</strong> {{ repo.created_at.strftime('%d.%m.%Y %H:%M') }}</li>
+                <li><strong>Обновлён:</strong> {{ repo.updated_at.strftime('%d.%m.%Y %H:%M') }}</li>
+                <li><strong>Владелец:</strong> {{ repo.owner.username }}</li>
+            </ul>
+        </div>
+        
+        <div>
+            <h4>💡 Что изменится?</h4>
+            <ul>
+                <li><strong>Название:</strong> Изменяется только отображаемое имя</li>
+                <li><strong>Описание:</strong> Обновляется информация о проекте</li>
+                <li><strong>Статус:</strong> 
+                    <ul>
+                        <li><strong>Публичный:</strong> Репозиторий видят все пользователи</li>
+                        <li><strong>Приватный:</strong> Репозиторий видите только вы</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        
+        <div style="margin-top: 30px; padding: 15px; border: 2px solid; background-color: rgba(0,0,0,0.05);">
+            <h4>📁 Файлы репозитория</h4>
+            <p>Изменение настроек репозитория не затрагивает файлы. Они останутся без изменений.</p>
+            <a href="{{ url_for('main.repo_view', repo_id=repo.id) }}" class="btn" style="margin-top: 10px;">
+                📄 Вернуться к файлам
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

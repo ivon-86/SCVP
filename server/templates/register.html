@@ -2,37 +2,209 @@
 
 {% block title %}Регистрация - SCVP{% endblock %}
 
+{% block extra_css %}
+<style>
+    .auth-container {
+        max-width: 800px;
+        margin: 0 auto;
+        display: flex;
+        gap: 30px;
+    }
+    
+    .auth-box {
+        flex: 1;
+        border: 3px double #000;
+        padding: 30px;
+        background-color: #fff;
+    }
+    
+    .auth-info {
+        flex: 1;
+        border: 3px double #000;
+        padding: 30px;
+        background-color: #f9f9f9;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        border: 2px solid #000;
+        font-family: 'Courier New', monospace;
+        font-size: 16px;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: #333;
+        box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
+    }
+    
+    textarea.form-control {
+        min-height: 100px;
+        resize: vertical;
+    }
+    
+    .btn-primary {
+        background-color: #000;
+        color: #fff;
+        border: 2px solid #000;
+        padding: 10px 20px;
+        font-family: 'Courier New', monospace;
+        font-size: 16px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .btn-primary:hover {
+        background-color: #333;
+        border-color: #333;
+    }
+    
+    .auth-links {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid #ccc;
+    }
+    
+    .auth-subtitle {
+        margin-bottom: 30px;
+        color: #666;
+    }
+    
+    small {
+        display: block;
+        margin-top: 5px;
+        color: #666;
+        font-size: 0.9em;
+    }
+    
+    /* Адаптивность */
+    @media (max-width: 768px) {
+        .auth-container {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<h1>🚀 Регистрация</h1>
-
-<form style="max-width: 400px; margin: 20px 0;">
-    <div style="margin-bottom: 15px;">
-        <label for="username">Имя пользователя:</label><br>
-        <input type="text" id="username" name="username" style="width: 100%; padding: 8px; margin-top: 5px;">
-        <small style="color: #666;">От 3 до 30 символов</small>
+<div class="auth-container">
+    <div class="auth-box">
+        <h1>🚀 Регистрация</h1>
+        <p class="auth-subtitle">Создайте новый аккаунт в SCVP</p>
+        
+        <!-- Флеш-сообщения -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <form method="POST" action="{{ url_for('auth.register') }}">
+            {{ form.hidden_tag() }}
+            
+            <div class="form-group">
+                {{ form.username.label }}
+                {{ form.username(class="form-control") }}
+                {% if form.username.errors %}
+                    <small style="color: #721c24;">
+                        {% for error in form.username.errors %}
+                            {{ error }}<br>
+                        {% endfor %}
+                    </small>
+                {% else %}
+                    <small>От 3 до 64 символов. Только буквы, цифры и _</small>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                {{ form.email.label }}
+                {{ form.email(class="form-control") }}
+                {% if form.email.errors %}
+                    <small style="color: #721c24;">
+                        {% for error in form.email.errors %}
+                            {{ error }}<br>
+                        {% endfor %}
+                    </small>
+                {% else %}
+                    <small>Для восстановления пароля. Можно оставить пустым.</small>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                {{ form.password.label }}
+                {{ form.password(class="form-control") }}
+                {% if form.password.errors %}
+                    <small style="color: #721c24;">
+                        {% for error in form.password.errors %}
+                            {{ error }}<br>
+                        {% endfor %}
+                    </small>
+                {% else %}
+                    <small>Минимум 6 символов. Рекомендуем использовать сложный пароль.</small>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                {{ form.confirm_password.label }}
+                {{ form.confirm_password(class="form-control") }}
+                {% if form.confirm_password.errors %}
+                    <small style="color: #721c24;">
+                        {% for error in form.confirm_password.errors %}
+                            {{ error }}<br>
+                        {% endfor %}
+                    </small>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                {{ form.submit(class="btn-primary") }}
+            </div>
+        </form>
+        
+        <div class="auth-links">
+            <p>Уже есть аккаунт? <a href="{{ url_for('auth.login') }}">Войдите</a></p>
+            <p><a href="{{ url_for('main.index') }}">← Вернуться на главную</a></p>
+        </div>
     </div>
     
-    <div style="margin-bottom: 15px;">
-        <label for="email">Email (опционально):</label><br>
-        <input type="email" id="email" name="email" style="width: 100%; padding: 8px; margin-top: 5px;">
+    <div class="auth-info">
+        <h3>🎁 Что вы получаете?</h3>
+        <ul>
+            <li>📁 <strong>100 репозиториев</strong> бесплатно</li>
+            <li>💾 <strong>1 ГБ</strong> хранилища</li>
+            <li>📱 Веб-интерфейс + CLI</li>
+            <li>🔄 Полный контроль версий</li>
+            <li>🎨 Светлая/тёмная темы</li>
+            <li>⚡ Быстрая работа</li>
+        </ul>
+        
+        <div style="margin-top: 30px; padding: 15px; background-color: #fff; border: 2px solid #000;">
+            <strong>Условия использования:</strong><br>
+            SCVP - это pet-проект для личного использования. 
+            Данные хранятся на вашем сервере. 
+            Резервное копирование - ваша ответственность.
+        </div>
+        
+        <div style="margin-top: 20px;">
+            <h4>🔐 Безопасность паролей:</h4>
+            <p>Все пароли хешируются с помощью bcrypt перед сохранением в базу данных.</p>
+        </div>
     </div>
-    
-    <div style="margin-bottom: 15px;">
-        <label for="password">Пароль:</label><br>
-        <input type="password" id="password" name="password" style="width: 100%; padding: 8px; margin-top: 5px;">
-        <small style="color: #666;">Не менее 6 символов</small>
-    </div>
-    
-    <div style="margin-bottom: 15px;">
-        <label for="confirm_password">Подтвердите пароль:</label><br>
-        <input type="password" id="confirm_password" name="confirm_password" style="width: 100%; padding: 8px; margin-top: 5px;">
-    </div>
-    
-    <button type="submit" style="background: #000; color: #fff; border: none; padding: 10px 20px; cursor: pointer;">
-        Создать аккаунт
-    </button>
-</form>
-
-<p>Уже есть аккаунт? <a href="/auth/login">Войдите</a></p>
-<p><a href="/">← Вернуться на главную</a></p>
+</div>
 {% endblock %}

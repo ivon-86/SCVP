@@ -1,0 +1,412 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ repo.name }} - SCVP{% endblock %}
+
+{% block extra_css %}
+<style>
+    .repo-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 3px double;
+    }
+    
+    .repo-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    
+    .repo-content {
+        display: flex;
+        gap: 30px;
+        margin-bottom: 40px;
+    }
+    
+    .files-section {
+        flex: 1;
+    }
+    
+    .info-section {
+        flex: 1;
+        min-width: 300px;
+    }
+    
+    .file-list {
+        border: 2px solid;
+        padding: 15px;
+        margin-bottom: 20px;
+        max-height: 500px;
+        overflow-y: auto;
+    }
+    
+    .file-item {
+        padding: 8px 10px;
+        margin: 5px 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: 1px solid transparent;
+    }
+    
+    .file-item:hover {
+        border: 1px solid;
+    }
+    
+    .file-name {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .file-actions {
+        display: flex;
+        gap: 5px;
+    }
+    
+    .upload-section, .folder-section {
+        border: 2px solid;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 8px;
+        border: 2px solid;
+        font-family: 'Courier New', monospace;
+        font-size: 14px;
+    }
+    
+    .btn {
+        display: inline-block;
+        padding: 8px 16px;
+        text-decoration: none;
+        border: 2px solid;
+        background-color: transparent;
+        color: inherit;
+        cursor: pointer;
+        font-family: 'Courier New', monospace;
+        font-size: 14px;
+        text-align: center;
+    }
+    
+    .btn:hover {
+        background-color: inherit;
+        color: inherit;
+    }
+    
+    .btn-small {
+        padding: 3px 8px;
+        font-size: 12px;
+    }
+    
+    .btn-view {
+        border-color: #0000EE;
+        color: #0000EE;
+    }
+    
+    .btn-view:hover {
+        background-color: #0000EE;
+        color: #fff;
+    }
+    
+    .btn-edit {
+        border-color: #008000;
+        color: #008000;
+    }
+    
+    .btn-edit:hover {
+        background-color: #008000;
+        color: #fff;
+    }
+    
+    .btn-download {
+        border-color: #FF8C00;
+        color: #FF8C00;
+    }
+    
+    .btn-download:hover {
+        background-color: #FF8C00;
+        color: #fff;
+    }
+    
+    .btn-delete {
+        border-color: #FF0000;
+        color: #FF0000;
+    }
+    
+    .btn-delete:hover {
+        background-color: #FF0000;
+        color: #fff;
+    }
+    
+    .commits-section {
+        margin-top: 40px;
+    }
+    
+    .commits-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-family: 'Courier New', monospace;
+        font-size: 14px;
+    }
+    
+    .commits-table th {
+        text-align: left;
+        padding: 12px 15px;
+        border: 1px solid;
+        font-weight: bold;
+    }
+    
+    .commits-table td {
+        padding: 10px 15px;
+        border: 1px solid;
+        vertical-align: top;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 30px;
+        border: 2px dashed;
+    }
+    
+    .file-icon {
+        font-size: 1.2em;
+    }
+    
+    @media (max-width: 768px) {
+        .repo-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 15px;
+        }
+        
+        .repo-actions {
+            width: 100%;
+            justify-content: space-between;
+        }
+        
+        .repo-content {
+            flex-direction: column;
+        }
+        
+        .info-section {
+            min-width: auto;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="repo-header">
+    <h1>📁 {{ repo.name }}</h1>
+    <div class="repo-actions">
+        <a href="{{ url_for('main.dashboard') }}" class="btn">← Назад</a>
+        <a href="{{ url_for('main.edit_repo', repo_id=repo.id) }}" class="btn">✏️ Редактировать</a>
+        <a href="{{ url_for('main.delete_repo', repo_id=repo.id) }}" 
+           class="btn btn-delete" 
+           onclick="return confirm('Удалить репозиторий? Все файлы будут потеряны.')">
+            🗑️ Удалить
+        </a>
+    </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flash-messages">
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<div class="repo-content">
+    <div class="files-section">
+        <h2>📄 Файлы репозитория</h2>
+        
+        {% if files %}
+            <div class="file-list">
+                {% for file in files %}
+                    <div class="file-item">
+                        <div class="file-name">
+                            {% if file.type == 'directory' %}
+                                <span class="file-icon">📁</span>
+                                {{ file.name }}/
+                            {% else %}
+                                <span class="file-icon">📄</span>
+                                {{ file.name }}
+                                <small style="color: #666; margin-left: 10px;">
+                                    ({{ (file.size / 1024)|round(2) if file.size > 0 else 0 }} KB)
+                                </small>
+                            {% endif %}
+                        </div>
+                        <div class="file-actions">
+                            {% if file.type == 'file' %}
+                                <a href="{{ url_for('main.download_file', repo_id=repo.id, filepath=file.path) }}" 
+                                   class="btn btn-small btn-download" 
+                                   title="Скачать">
+                                    ⬇️
+                                </a>
+                                <a href="{{ url_for('main.edit_file', repo_id=repo.id, filepath=file.path) }}" 
+                                   class="btn btn-small btn-edit" 
+                                   title="Редактировать">
+                                    ✏️
+                                </a>
+                                <a href="{{ url_for('main.delete_file', repo_id=repo.id, filepath=file.path) }}" 
+                                   class="btn btn-small btn-delete" 
+                                   title="Удалить"
+                                   onclick="return confirm('Удалить файл {{ file.name }}?')">
+                                    🗑️
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <p>📭 В репозитории пока нет файлов</p>
+                <p>Загрузите файлы или создайте папку чтобы начать работу</p>
+            </div>
+        {% endif %}
+        
+        <div class="upload-section">
+            <h3>📤 Загрузить файл</h3>
+            <form method="POST" action="{{ url_for('main.upload_file', repo_id=repo.id) }}" enctype="multipart/form-data">
+                {{ upload_form.hidden_tag() }}
+                
+                <div class="form-group">
+                    {{ upload_form.file.label }}
+                    {{ upload_form.file(class="form-control") }}
+                    {% if upload_form.file.errors %}
+                        <small style="color: #721c24;">
+                            {% for error in upload_form.file.errors %}
+                                {{ error }}<br>
+                            {% endfor %}
+                        </small>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    {{ upload_form.filepath.label }}
+                    {{ upload_form.filepath(class="form-control") }}
+                    <small>Укажите путь, например: "src/" или "docs/images/"</small>
+                </div>
+                
+                <div class="form-group">
+                    {{ upload_form.submit(class="btn") }}
+                </div>
+            </form>
+        </div>
+        
+        <div class="folder-section">
+            <h3>📁 Создать папку</h3>
+            <form method="POST" action="{{ url_for('main.create_folder', repo_id=repo.id) }}">
+                {{ folder_form.hidden_tag() }}
+                
+                <div class="form-group">
+                    {{ folder_form.folder_name.label }}
+                    {{ folder_form.folder_name(class="form-control") }}
+                    {% if folder_form.folder_name.errors %}
+                        <small style="color: #721c24;">
+                            {% for error in folder_form.folder_name.errors %}
+                                {{ error }}<br>
+                            {% endfor %}
+                        </small>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    {{ folder_form.folder_path.label }}
+                    {{ folder_form.folder_path(class="form-control") }}
+                    <small>Укажите путь, например: "src/" или "docs/images/"</small>
+                </div>
+                
+                <div class="form-group">
+                    {{ folder_form.submit(class="btn") }}
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="info-section">
+        <div style="border: 2px solid; padding: 20px; margin-bottom: 20px;">
+            <h3>📝 Информация</h3>
+            <p><strong>Описание:</strong><br>
+                {{ repo.description if repo.description else 'Нет описания' }}
+            </p>
+            <p><strong>Владелец:</strong> {{ repo.owner.username }}</p>
+            <p><strong>Статус:</strong> 
+                {% if repo.is_public %}
+                    <span style="color: #155724;">✅ Публичный</span>
+                {% else %}
+                    <span style="color: #721c24;">🔒 Приватный</span>
+                {% endif %}
+            </p>
+            <p><strong>Создан:</strong> {{ repo.created_at.strftime('%d.%m.%Y %H:%M') }}</p>
+            <p><strong>Обновлён:</strong> {{ repo.updated_at.strftime('%d.%m.%Y %H:%M') }}</p>
+        </div>
+        
+        <div style="border: 2px solid; padding: 20px;">
+            <h3>💻 CLI команды</h3>
+            <pre style="background-color: #000; color: #0f0; padding: 15px; overflow-x: auto; margin: 0;">
+$ scvp clone {{ repo.id }}
+$ scvp commit -m "Ваши изменения"
+$ scvp push
+$ scvp pull</pre>
+        </div>
+    </div>
+</div>
+
+<div class="commits-section">
+    <h2>🔄 История коммитов</h2>
+    
+    {% if commits %}
+        <table class="commits-table">
+            <thead>
+                <tr>
+                    <th width="10%">Версия</th>
+                    <th width="15%">Хэш</th>
+                    <th width="50%">Сообщение</th>
+                    <th width="15%">Дата</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for commit in commits %}
+                <tr>
+                    <td><strong>#{{ commit.version_number }}</strong></td>
+                    <td style="font-family: monospace; font-size: 0.9em;">
+                        {{ commit.commit_hash[:8] }}
+                    </td>
+                    <td>{{ commit.message }}</td>
+                    <td>
+                        {{ commit.created_at.strftime('%d.%m.%Y') }}<br>
+                        <small>{{ commit.created_at.strftime('%H:%M') }}</small>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="empty-state">
+            <p>📭 Нет коммитов</p>
+            <p>После изменений файлов будут создаваться коммиты</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

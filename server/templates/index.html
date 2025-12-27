@@ -2,25 +2,103 @@
 
 {% block title %}Главная - SCVP{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Эти стили будут переопределяться CSS темы */
+    .developer-section {
+        display: flex;
+        align-items: center;
+        margin: 30px 0;
+        padding: 20px;
+        border: 2px solid;
+    }
+    
+    .developer-photo {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        border: 3px solid;
+        object-fit: cover;
+        margin-right: 30px;
+    }
+    
+    .developer-info {
+        flex: 1;
+    }
+    
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin: 30px 0;
+    }
+    
+    .feature-card {
+        border: 2px solid;
+        padding: 20px;
+    }
+    
+    /* Адаптивность для мобильных */
+    @media (max-width: 768px) {
+        .developer-section {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .developer-photo {
+            margin-right: 0;
+            margin-bottom: 20px;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <h1>💾 SCVP</h1>
 <h2>Save and Control Version Project</h2>
 
+<!-- Секция разработчика -->
+<div class="developer-section">
+    <div>
+        <img src="{{ url_for('static', filename='images/developer.jpg') }}" 
+             alt="Разработчик SCVP" 
+             class="developer-photo"
+             onerror="this.onerror=null; this.src='https://via.placeholder.com/150/000000/FFFFFF?text=Dev+Photo';">
+    </div>
+    <div class="developer-info">
+        <h3 style="margin-top: 0;">👨‍💻 О разработчике</h3>
+        <p>Привет! Я создатель SCVP - системы контроля версий в стиле 90х.</p>
+        <p>Этот проект создан для личного использования, портфолио и ностальгии по старому доброму вебу.</p>
+        <p><strong>Увлечения:</strong> программирование на Python, веб-разработка, ретро-компьютеры</p>
+        <p><strong>Контакты:</strong> [ваш email или GitHub]</p>
+    </div>
+</div>
+
 <p>Упрощённая система управления версиями в стиле веб-дизайна 90х-2000х годов.</p>
 
 <h3>🎯 Особенности:</h3>
-<ul>
-    <li>📁 Простое хранение проектов</li>
-    <li>🔄 Контроль версий с возможностью отката</li>
-    <li>📱 Адаптивный интерфейс для всех устройств</li>
-    <li>🎨 Ностальгический дизайн 90х-2000х</li>
-    <li>⚡ Минимализм - без JavaScript</li>
-    <li>💻 CLI инструмент для автоматизации</li>
-</ul>
+<div class="features-grid">
+    <div class="feature-card">
+        <h4>📁 Простое хранение</h4>
+        <p>Храните проекты в облаке. Всегда доступны, всегда под рукой.</p>
+    </div>
+    <div class="feature-card">
+        <h4>🔄 Контроль версий</h4>
+        <p>Каждое изменение сохраняется отдельно. Можно откатиться в любой момент.</p>
+    </div>
+    <div class="feature-card">
+        <h4>📱 Адаптивный интерфейс</h4>
+        <p>Работает на компьютере, планшете и телефоне. Без JavaScript.</p>
+    </div>
+    <div class="feature-card">
+        <h4>⚡ CLI инструмент</h4>
+        <p>Командная строка для профессионалов. Push, pull, commit.</p>
+    </div>
+</div>
 
 <h3>🚀 Начните прямо сейчас:</h3>
-<p>
-    <a href="/auth/register">👉 Зарегистрируйтесь</a> или 
-    <a href="/auth/login">👉 Войдите в систему</a>
+<p style="text-align: center; margin: 30px 0;">
+    <a href="/auth/register" style="display: inline-block; padding: 10px 20px; background: #000; color: #fff; text-decoration: none; margin-right: 10px;">👉 Зарегистрируйтесь</a>
+    <a href="/auth/login" style="display: inline-block; padding: 10px 20px; background: #f0f0f0; color: #000; text-decoration: none; border: 2px solid #000;">👉 Войдите в систему</a>
 </p>
 {% endblock %}

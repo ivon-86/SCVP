@@ -1,0 +1,223 @@
+{% extends "layout.html" %}
+
+{% block title %}Новый репозиторий - SCVP{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+        display: flex;
+        gap: 30px;
+    }
+    
+    .form-box {
+        flex: 1;
+        border: 3px double #000;
+        padding: 30px;
+        background-color: #fff;
+    }
+    
+    .form-info {
+        flex: 1;
+        border: 3px double #000;
+        padding: 30px;
+        background-color: #f9f9f9;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        border: 2px solid #000;
+        font-family: 'Courier New', monospace;
+        font-size: 16px;
+    }
+    
+    textarea.form-control {
+        min-height: 100px;
+        resize: vertical;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: #333;
+        box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
+    }
+    
+    .btn {
+        display: inline-block;
+        padding: 10px 20px;
+        text-decoration: none;
+        border: 2px solid #000;
+        background-color: #fff;
+        color: #000;
+        cursor: pointer;
+        font-family: 'Courier New', monospace;
+        font-size: 16px;
+        text-align: center;
+    }
+    
+    .btn:hover {
+        background-color: #000;
+        color: #fff;
+    }
+    
+    .btn-primary {
+        background-color: #000;
+        color: #fff;
+    }
+    
+    .btn-primary:hover {
+        background-color: #333;
+        border-color: #333;
+    }
+    
+    .btn-secondary {
+        background-color: #f0f0f0;
+    }
+    
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 30px;
+    }
+    
+    small {
+        display: block;
+        margin-top: 5px;
+        color: #666;
+        font-size: 0.9em;
+    }
+    
+    .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+    
+    .checkbox-group input[type="checkbox"] {
+        width: auto;
+    }
+    
+    /* Адаптивность */
+    @media (max-width: 768px) {
+        .form-container {
+            flex-direction: column;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+        }
+        
+        .form-actions .btn {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-box">
+        <h1>➕ Создать новый репозиторий</h1>
+        <p style="color: #666; margin-bottom: 30px;">Заполните информацию о вашем новом проекте</p>
+        
+        <!-- Флеш-сообщения -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <form method="POST" action="{{ url_for('main.new_repo') }}">
+            {{ form.hidden_tag() }}
+            
+            <div class="form-group">
+                {{ form.name.label }}
+                {{ form.name(class="form-control") }}
+                {% if form.name.errors %}
+                    <small style="color: #721c24;">
+                        {% for error in form.name.errors %}
+                            {{ error }}<br>
+                        {% endfor %}
+                    </small>
+                {% else %}
+                    <small>Название должно быть уникальным среди ваших репозиториев</small>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                {{ form.description.label }}
+                {{ form.description(class="form-control") }}
+                {% if form.description.errors %}
+                    <small style="color: #721c24;">
+                        {% for error in form.description.errors %}
+                            {{ error }}<br>
+                        {% endfor %}
+                    </small>
+                {% else %}
+                    <small>Можно оставить пустым или заполнить позже</small>
+                {% endif %}
+            </div>
+            
+            <div class="checkbox-group">
+                {{ form.generate_readme() }}
+                {{ form.generate_readme.label }}
+            </div>
+            
+            <div class="checkbox-group">
+                {{ form.is_public() }}
+                {{ form.is_public.label }}
+            </div>
+            
+            <div class="form-actions">
+                {{ form.submit(class="btn-primary") }}
+                <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">Отмена</a>
+            </div>
+        </form>
+    </div>
+    
+    <div class="form-info">
+        <h3>📋 Что такое README.md?</h3>
+        <p><strong>README.md</strong> - это файл с описанием вашего проекта в формате Markdown.</p>
+        
+        <p>Обычно он содержит:</p>
+        <ul>
+            <li>Название проекта</li>
+            <li>Описание</li>
+            <li>Инструкции по установке</li>
+            <li>Примеры использования</li>
+            <li>Информацию о лицензии</li>
+        </ul>
+        
+        <div style="margin-top: 30px; padding: 15px; background-color: #fff; border: 2px solid #000;">
+            <h4>💡 Совет:</h4>
+            <p>Всегда добавляйте README.md к своим проектам. Это помогает другим (и вам в будущем) понять, что делает проект и как его использовать.</p>
+        </div>
+        
+        <div style="margin-top: 30px;">
+            <h4>💻 После создания репозитория:</h4>
+            <p>Используйте CLI для работы:</p>
+            <pre style="background-color: #000; color: #0f0; padding: 15px; border: 1px solid #0f0; overflow-x: auto;">
+<span style="color: #0f0;">$</span> scvp init .
+<span style="color: #0f0;">$</span> scvp commit -m "Initial commit"
+<span style="color: #0f0;">$</span> scvp push</pre>
+        </div>
+    </div>
+</div>
+{% endblock %}

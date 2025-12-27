@@ -1,0 +1,91 @@
+/* Тёмная тема */
+body {
+    background-color: #121212;
+    color: #e0e0e0;
+}
+
+a {
+    color: #ffa500;
+}
+
+a:visited {
+    color: #cc8400;
+}
+
+a:hover {
+    color: #ffcc00;
+}
+
+.navbar {
+    background-color: #1a1a1a;
+    border-bottom-color: #ffa500;
+}
+
+.navbar a {
+    color: #ffa500;
+}
+
+.theme-toggle-nav {
+    color: #ffa500;
+    background-color: #333;
+    border: 1px solid #ffa500;
+}
+
+.theme-toggle-nav:hover {
+    background-color: #ffa500;
+    color: #000;
+}
+
+.user-info {
+    border-left-color: #444;
+}
+
+.footer {
+    background-color: #1a1a1a;
+    border-top-color: #333;
+    color: #aaa;
+}
+
+.footer a {
+    color: #ffa500;
+}
+
+/* Флеш-сообщения */
+.flash-messages {
+    margin-bottom: 20px;
+}
+
+.flash {
+    padding: 12px;
+    margin-bottom: 10px;
+    border: 2px solid;
+}
+
+.flash.success {
+    background-color: #0d3014;
+    border-color: #2e7d32;
+    color: #a5d6a7;
+}
+
+.flash.error {
+    background-color: #3d1a1a;
+    border-color: #c62828;
+    color: #ef9a9a;
+}
+
+.flash.info {
+    background-color: #0a2a33;
+    border-color: #17a2b8;
+    color: #bee5eb;
+}
+
+/* Мобильная адаптивность */
+@media (max-width: 768px) {
+    .nav-right {
+        border-top-color: #444;
+    }
+    
+    .user-info {
+        border-top-color: #444;
+    }
+}

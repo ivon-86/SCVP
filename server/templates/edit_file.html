@@ -1,0 +1,371 @@
+{% extends "layout.html" %}
+
+{% block title %}Редактировать {{ filename }} - {{ repo.name }} - SCVP{% endblock %}
+
+{% block extra_css %}
+<style>
+    .edit-file-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .edit-file-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 3px double;
+    }
+    
+    .file-actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .editor-container {
+        display: flex;
+        gap: 30px;
+        margin-bottom: 40px;
+    }
+    
+    .editor-section {
+        flex: 2;
+    }
+    
+    .info-section {
+        flex: 1;
+        min-width: 300px;
+    }
+    
+    .editor-box {
+        border: 3px double;
+        padding: 20px;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    
+    textarea.form-control {
+        width: 100%;
+        padding: 15px;
+        border: 2px solid;
+        font-family: 'Courier New', monospace;
+        font-size: 14px;
+        line-height: 1.5;
+        min-height: 400px;
+        resize: vertical;
+        white-space: pre;
+        overflow-wrap: normal;
+        overflow-x: auto;
+    }
+    
+    textarea.form-control:focus {
+        outline: none;
+        border-color: #333;
+        box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
+    }
+    
+    .btn {
+        display: inline-block;
+        padding: 10px 20px;
+        text-decoration: none;
+        border: 2px solid;
+        background-color: transparent;
+        color: inherit;
+        cursor: pointer;
+        font-family: 'Courier New', monospace;
+        font-size: 16px;
+        text-align: center;
+    }
+    
+    .btn:hover {
+        background-color: inherit;
+        color: inherit;
+    }
+    
+    .btn-primary {
+        background-color: #000;
+        color: #fff;
+    }
+    
+    .btn-primary:hover {
+        background-color: #333;
+        border-color: #333;
+    }
+    
+    .btn-secondary {
+        background-color: #f0f0f0;
+    }
+    
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+    
+    .file-info {
+        border: 2px solid;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .file-info ul {
+        margin: 0;
+        padding-left: 20px;
+    }
+    
+    .file-info li {
+        margin-bottom: 8px;
+    }
+    
+    .file-tips {
+        border: 2px solid;
+        padding: 20px;
+        background-color: rgba(0,0,0,0.05);
+    }
+    
+    .file-tips h4 {
+        margin-top: 0;
+    }
+    
+    .file-tips ul {
+        margin: 0;
+        padding-left: 20px;
+    }
+    
+    .file-tips li {
+        margin-bottom: 8px;
+    }
+    
+    .editor-tools {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid;
+    }
+    
+    .file-stats {
+        font-size: 0.9em;
+        color: #666;
+    }
+    
+    @media (max-width: 768px) {
+        .edit-file-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 15px;
+        }
+        
+        .file-actions {
+            width: 100%;
+            justify-content: space-between;
+        }
+        
+        .editor-container {
+            flex-direction: column;
+        }
+        
+        .info-section {
+            min-width: auto;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+        }
+        
+        .form-actions .btn {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="edit-file-container">
+    <div class="edit-file-header">
+        <h1>✏️ Редактировать файл</h1>
+        <div class="file-actions">
+            <a href="{{ url_for('main.repo_view', repo_id=repo.id) }}" class="btn btn-secondary">← Назад к репозиторию</a>
+            <a href="{{ url_for('main.download_file', repo_id=repo.id, filepath=filepath) }}" 
+               class="btn" 
+               title="Скачать файл">
+                ⬇️ Скачать
+            </a>
+        </div>
+    </div>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+    
+    <div class="editor-container">
+        <div class="editor-section">
+            <div class="editor-box">
+                <div class="editor-tools">
+                    <div>
+                        <strong>📄 Файл:</strong> {{ form.filename.data }}
+                    </div>
+                    <div class="file-stats">
+                        {% set content = form.content.data %}
+                        {% set lines = content.split('\n')|length %}
+                        {% set words = content.split()|length %}
+                        {% set chars = content|length %}
+                        Строк: {{ lines }} | Слов: {{ words }} | Символов: {{ chars }}
+                    </div>
+                </div>
+                
+                <form method="POST" action="{{ url_for('main.edit_file', repo_id=repo.id, filepath=filepath) }}">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="form-group">
+                        {{ form.content(class="form-control", id="file-content") }}
+                        {% if form.content.errors %}
+                            <small style="color: #721c24;">
+                                {% for error in form.content.errors %}
+                                    {{ error }}<br>
+                                {% endfor %}
+                            </small>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-actions">
+                        {{ form.submit(class="btn-primary") }}
+                        <a href="{{ url_for('main.repo_view', repo_id=repo.id) }}" class="btn btn-secondary">Отмена</a>
+                        <button type="button" class="btn" onclick="clearEditor()" title="Очистить редактор">
+                            🗑️ Очистить
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="info-section">
+            <div class="file-info">
+                <h3>📋 Информация о файле</h3>
+                <ul>
+                    <li><strong>Имя файла:</strong> {{ form.filename.data }}</li>
+                    <li><strong>Путь:</strong> {{ filepath }}</li>
+                    <li><strong>Репозиторий:</strong> {{ repo.name }}</li>
+                    <li><strong>Владелец:</strong> {{ repo.owner.username }}</li>
+                    <li><strong>Тип:</strong> 
+                        {% set ext = form.filename.data.split('.')[-1].lower() if '.' in form.filename.data else 'text' %}
+                        {% if ext in ['py', 'js', 'html', 'css', 'md', 'json', 'xml'] %}
+                            Код (.{{ ext }})
+                        {% elif ext in ['txt', 'md'] %}
+                            Текст
+                        {% else %}
+                            Файл (.{{ ext }})
+                        {% endif %}
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="file-tips">
+                <h4>💡 Советы по редактированию</h4>
+                <ul>
+                    <li>Сохраняйте отступы для кода</li>
+                    <li>Используйте UTF-8 кодировку</li>
+                    <li>Для переноса строк используйте Enter</li>
+                    <li>Tab создает отступ в 4 пробела</li>
+                    <li>После сохранения будет создан новый коммит</li>
+                </ul>
+                
+                <h4 style="margin-top: 20px;">⌨️ Горячие клавиши</h4>
+                <ul>
+                    <li><strong>Ctrl+S</strong> - Сохранить</li>
+                    <li><strong>Ctrl+Z</strong> - Отменить</li>
+                    <li><strong>Ctrl+Y</strong> - Повторить</li>
+                    <li><strong>Ctrl+A</strong> - Выделить всё</li>
+                    <li><strong>Tab</strong> - Отступ</li>
+                </ul>
+                
+                <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid;">
+                    <h4>⚠️ Внимание</h4>
+                    <p>После сохранения файла будет создан новый коммит с сообщением "Изменен файл: {{ form.filename.data }}"</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Горячие клавиши
+    document.addEventListener('keydown', function(e) {
+        // Ctrl+S - сохранить
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+            e.preventDefault();
+            document.querySelector('form').submit();
+        }
+        
+        // Ctrl+Z - отменить (браузер делает это сам)
+        // Ctrl+Y - повторить (браузер делает это сам)
+        
+        // Ctrl+A - выделить всё в редакторе
+        if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
+            var editor = document.getElementById('file-content');
+            if (editor === document.activeElement) {
+                e.preventDefault();
+                editor.select();
+            }
+        }
+    });
+    
+    // Очистка редактора
+    function clearEditor() {
+        if (confirm('Очистить содержимое файла? Это действие нельзя отменить.')) {
+            document.getElementById('file-content').value = '';
+        }
+    }
+    
+    // Автосохранение при потере фокуса (опционально)
+    var originalContent = document.getElementById('file-content').value;
+    var editor = document.getElementById('file-content');
+    
+    editor.addEventListener('blur', function() {
+        var currentContent = editor.value;
+        if (originalContent !== currentContent) {
+            // Показать уведомление об изменении
+            console.log('Содержимое изменено. Не забудьте сохранить!');
+        }
+    });
+    
+    // Подсветка синтаксиса для разных типов файлов
+    function detectSyntax() {
+        var filename = '{{ form.filename.data }}'.toLowerCase();
+        var editor = document.getElementById('file-content');
+        
+        if (filename.endsWith('.py')) {
+            editor.style.color = '#3572A5';
+        } else if (filename.endsWith('.js')) {
+            editor.style.color = '#F1E05A';
+        } else if (filename.endsWith('.html')) {
+            editor.style.color = '#E34C26';
+        } else if (filename.endsWith('.css')) {
+            editor.style.color = '#563D7C';
+        } else if (filename.endsWith('.md')) {
+            editor.style.color = '#083FA1';
+        }
+    }
+    
+    // Запускаем детектор синтаксиса при загрузке
+    document.addEventListener('DOMContentLoaded', detectSyntax);
+</script>
+{% endblock %}

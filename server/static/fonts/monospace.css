@@ -1,0 +1,6 @@
+/* Моноширинные шрифты */
+@import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap');
+
+body, pre, code, .repos-table, .commits-table, .form-control, input, textarea, button {
+    font-family: 'Courier Prime', 'Courier New', 'Cascadia Code', 'Consolas', 'Monaco', monospace;
+}

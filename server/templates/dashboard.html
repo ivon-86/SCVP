@@ -1,0 +1,307 @@
+{% extends "layout.html" %}
+
+{% block title %}Мои репозитории - SCVP{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #000;
+    }
+    
+    .repo-actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .repos-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-family: 'Courier New', monospace;
+        font-size: 14px;
+    }
+    
+    .repos-table th {
+        background-color: #000;
+        color: #fff;
+        text-align: left;
+        padding: 12px 15px;
+        border: 1px solid #000;
+        font-weight: bold;
+    }
+    
+    .repos-table td {
+        padding: 10px 15px;
+        border: 1px solid #ccc;
+        vertical-align: top;
+    }
+    
+    .repos-table tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+    
+    .repos-table tr:hover {
+        background-color: #f0f0f0;
+        cursor: pointer;
+    }
+    
+    .repo-name {
+        font-weight: bold;
+    }
+    
+    .repo-name a {
+        color: #0000EE;
+        text-decoration: none;
+        display: block;
+        padding: 5px 0;
+    }
+    
+    .repo-name a:hover {
+        text-decoration: underline;
+    }
+    
+    .repo-description {
+        color: #666;
+        font-size: 0.9em;
+        max-width: 400px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .repo-dates {
+        font-size: 0.85em;
+        color: #888;
+    }
+    
+    .repo-status {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 3px;
+        font-size: 0.85em;
+        font-weight: bold;
+    }
+    
+    .status-public {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+    
+    .status-private {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        border: 2px dashed #ccc;
+        margin: 30px 0;
+        background-color: #f9f9f9;
+    }
+    
+    .btn {
+        display: inline-block;
+        padding: 8px 16px;
+        text-decoration: none;
+        border: 2px solid #000;
+        background-color: #fff;
+        color: #000;
+        cursor: pointer;
+        font-family: 'Courier New', monospace;
+        font-size: 14px;
+        text-align: center;
+    }
+    
+    .btn:hover {
+        background-color: #000;
+        color: #fff;
+    }
+    
+    .btn-primary {
+        background-color: #000;
+        color: #fff;
+    }
+    
+    .btn-primary:hover {
+        background-color: #333;
+        border-color: #333;
+    }
+    
+    .theme-toggle {
+        background-color: #fff;
+        color: #000;
+        border: 1px solid #ccc;
+    }
+    
+    .theme-toggle:hover {
+        background-color: #000;
+        color: #fff;
+        border-color: #000;
+    }
+    
+    /* Флеш-сообщения */
+    .flash-messages {
+        margin-bottom: 20px;
+    }
+    
+    .flash {
+        padding: 12px;
+        margin-bottom: 10px;
+        border: 2px solid;
+    }
+    
+    .flash.success {
+        background-color: #d4edda;
+        border-color: #155724;
+        color: #155724;
+    }
+    
+    .flash.error {
+        background-color: #f8d7da;
+        border-color: #721c24;
+        color: #721c24;
+    }
+    
+    .flash.info {
+        background-color: #d1ecf1;
+        border-color: #0c5460;
+        color: #0c5460;
+    }
+    
+    /* Адаптивность для таблицы */
+    @media (max-width: 768px) {
+        .dashboard-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        
+        .repo-actions {
+            width: 100%;
+            justify-content: space-between;
+        }
+        
+        .repos-table {
+            font-size: 12px;
+        }
+        
+        .repos-table th,
+        .repos-table td {
+            padding: 8px 10px;
+        }
+        
+        .repo-description {
+            max-width: 200px;
+        }
+    }
+    
+    /* Для очень маленьких экранов скрываем описание */
+    @media (max-width: 480px) {
+        .repos-table th:nth-child(2),
+        .repos-table td:nth-child(2) {
+            display: none;
+        }
+        
+        .repo-description {
+            display: none;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1>📁 Мои репозитории</h1>
+    <div class="repo-actions">
+        <a href="{{ url_for('main.new_repo') }}" class="btn btn-primary">➕ Новый репозиторий</a>
+        <a href="{{ url_for('main.help') }}" class="btn">📖 Справка</a>
+        <a href="{{ url_for('main.toggle_theme') }}" class="btn theme-toggle">
+            {% if session.get('theme') == 'dark' %}
+                ☀️ Светлая
+            {% else %}
+                🌙 Тёмная
+            {% endif %}
+        </a>
+    </div>
+</div>
+
+<!-- Флеш-сообщения -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flash-messages">
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+{% if repos %}
+    <table class="repos-table">
+        <thead>
+            <tr>
+                <th width="25%">Название</th>
+                <th width="35%">Описание</th>
+                <th width="15%">Создан</th>
+                <th width="15%">Обновлён</th>
+                <th width="10%">Статус</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for repo in repos %}
+            <tr onclick="window.location='{{ url_for('main.repo_view', repo_id=repo.id) }}'" 
+                style="cursor: pointer;" 
+                title="Нажмите для просмотра репозитория">
+                <td class="repo-name">
+                    <a href="{{ url_for('main.repo_view', repo_id=repo.id) }}">{{ repo.name }}</a>
+                </td>
+                <td class="repo-description" title="{{ repo.description if repo.description else 'Нет описания' }}">
+                    {{ repo.description if repo.description else '<em>Нет описания</em>'|safe }}
+                </td>
+                <td class="repo-dates">
+                    {{ repo.created_at.strftime('%d.%m.%Y') }}<br>
+                    <small>{{ repo.created_at.strftime('%H:%M') }}</small>
+                </td>
+                <td class="repo-dates">
+                    {{ repo.updated_at.strftime('%d.%m.%Y') }}<br>
+                    <small>{{ repo.updated_at.strftime('%H:%M') }}</small>
+                </td>
+                <td>
+                    <span class="repo-status {{ 'status-public' if repo.is_public else 'status-private' }}">
+                        {{ 'Публичный' if repo.is_public else 'Приватный' }}
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <div style="margin-top: 20px; font-size: 0.9em; color: #666; text-align: center;">
+        <p>Всего репозиториев: <strong>{{ repos|length }}</strong> | Нажмите на любой репозиторий для просмотра</p>
+    </div>
+{% else %}
+    <div class="empty-state">
+        <h2>😴 У вас пока нет репозиториев</h2>
+        <p>Создайте свой первый репозиторий, чтобы начать работу с системой контроля версий SCVP.</p>
+        <a href="{{ url_for('main.new_repo') }}" class="btn btn-primary">➕ Создать первый репозиторий</a>
+        
+        <div style="margin-top: 30px; text-align: left; max-width: 500px; margin-left: auto; margin-right: auto;">
+            <h3>💡 Советы для начала:</h3>
+            <ul>
+                <li>Создайте репозиторий для вашего текущего проекта</li>
+                <li>Добавьте README.md с описанием проекта</li>
+                <li>Используйте CLI для удобной работы</li>
+                <li>Регулярно делайте коммиты с описанием изменений</li>
+            </ul>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

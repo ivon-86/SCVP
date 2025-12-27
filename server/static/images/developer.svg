@@ -1,0 +1,6 @@
+<svg width="150" height="150" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="75" cy="75" r="70" fill="#000"/>
+  <circle cx="75" cy="55" r="15" fill="#fff"/>
+  <path d="M50,95 Q75,120 100,95" stroke="#fff" stroke-width="5" fill="none"/>
+  <text x="75" y="140" text-anchor="middle" fill="#fff" font-family="Arial" font-size="14">DEV</text>
+</svg>
