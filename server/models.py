@@ -1,6 +1,7 @@
 from datetime import datetime
 from flask_login import UserMixin
-from server import db, login_manager
+from werkzeug.security import generate_password_hash, check_password_hash
+from server import db
 
 class User(UserMixin, db.Model):
     """Модель пользователя"""
@@ -13,10 +14,18 @@ class User(UserMixin, db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     theme = db.Column(db.String(10), default='light')
     
+    # Связи (пока закомментируем, добавим позже)
+    # repositories = db.relationship('Repository', backref='owner', lazy='dynamic')
+    
+    def set_password(self, password):
+        """Хеширование пароля"""
+        self.password_hash = generate_password_hash(password)
+    
+    def check_password(self, password):
+        """Проверка пароля"""
+        return check_password_hash(self.password_hash, password)
+    
     def __repr__(self):
         return f'<User {self.username}>'
 
-@login_manager.user_loader
-def load_user(user_id):
-    """Загрузка пользователя для Flask-Login"""
-    return User.query.get(int(user_id))
+# ВАЖНО: убираем user_loader отсюда, он теперь в __init__.py

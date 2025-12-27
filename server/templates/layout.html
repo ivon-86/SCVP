@@ -35,14 +35,44 @@
             font-size: 0.9em;
             color: #666;
         }
+        
+        /* Стили для навигации */
+        .nav-left {
+            float: left;
+        }
+        .nav-right {
+            float: right;
+        }
+        .nav-clear {
+            clear: both;
+        }
+        
+        /* Стили для мобильных устройств */
+        @media (max-width: 768px) {
+            .navbar a {
+                display: block;
+                margin: 5px 0;
+                padding: 5px 0;
+            }
+            .nav-left, .nav-right {
+                float: none;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="navbar">
-            <a href="/">🏠 Главная</a>
-            <a href="/auth/login">🔑 Вход</a>
-            <a href="/auth/register">🚀 Регистрация</a>
+            <div class="nav-left">
+                <a href="/">🏠 Главная</a>
+                <a href="/about">ℹ️ О проекте</a>
+                <a href="/help">📖 Справка</a>
+            </div>
+            <div class="nav-right">
+                <a href="/auth/login">🔑 Вход</a>
+                <a href="/auth/register">🚀 Регистрация</a>
+            </div>
+            <div class="nav-clear"></div>
         </div>
         
         <main>
@@ -50,7 +80,10 @@
         </main>
         
         <div class="footer">
-            <p>SCVP v0.1 | Save and Control Version Project</p>
+            <p>SCVP v0.1 | Save and Control Version Project | 
+                <a href="/about">О проекте</a> | 
+                <a href="/help">Справка</a>
+            </p>
         </div>
     </div>
 </body>

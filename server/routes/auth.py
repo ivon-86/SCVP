@@ -1,11 +1,11 @@
-from flask import Blueprint
+from flask import Blueprint, render_template
 
 auth = Blueprint('auth', __name__)
 
 @auth.route('/login')
 def login():
-    return "Страница входа в разработке"
+    return render_template('login.html')
 
 @auth.route('/register')
 def register():
-    return "Страница регистрации в разработке"
+    return render_template('register.html')
